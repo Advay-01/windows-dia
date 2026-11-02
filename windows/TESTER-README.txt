@@ -6,6 +6,12 @@ Requires Windows 11 x64 and Dia installed normally. Tested with Dia 1.4.0.424.
 2. Double-click DiaTweaks.exe. It opens Dia and stays in the notification area.
 3. In Dia Settings, select Patches below Advanced.
 
+Themes: right-click an empty area of Dia's sidebar and choose Themes. Drag the
+large color dot or choose a swatch. Use + and - to add/remove linked colors;
+the three-circle button changes their harmony. Double-click the large dot for
+exact RGB/hex entry. Adjust the opacity wave and grain dial below the swatches.
+Remove every color with - to restore Dia. The controls are separate from Patches.
+
 Switches apply immediately and are remembered for the next launch. There is no
 terminal to leave open, no developer tools to enable, and no administrator step.
 Keep DiaTweaks running while using patches. Right-click its notification icon

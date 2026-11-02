@@ -8,7 +8,7 @@ class NativeFeatures {
     struct Impl;
     std::unique_ptr<Impl> impl_;
 public:
-    NativeFeatures(IXamlDiagnostics*, IVisualTreeService*);
+    NativeFeatures(IXamlDiagnostics*, IVisualTreeService*, FeatureChanged = {});
     ~NativeFeatures();
     FeatureStates tick(const std::vector<Node>&, uint32_t requested);
     void restore();

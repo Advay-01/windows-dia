@@ -1,4 +1,5 @@
 #include "native_features_impl.h"
+#include "themes_selector.h"
 #include <winrt/Windows.Foundation.Collections.h>
 #include <sstream>
 namespace dt {
@@ -22,6 +23,20 @@ static void walk(const DependencyObject& node, std::wostream& out, unsigned dept
             for (const auto& row : grid.RowDefinitions()) out << row.Height().Value << L":" << static_cast<int>(row.Height().GridUnitType) << L"/" << row.ActualHeight() << L";";
         }
         if (auto border = e.try_as<Border>()) { auto c = border.CornerRadius(); out << L" corner=" << c.TopLeft << L"," << c.TopRight << L"," << c.BottomRight << L"," << c.BottomLeft; }
+        if (auto menu = e.try_as<MenuFlyoutPresenter>()) {
+            auto source = menu.ItemsSource();
+            if (source) out << L" menu-source=" << get_class_name(source).c_str();
+            auto items = source.try_as<winrt::Windows::Foundation::Collections::IVector<MenuFlyoutItemBase>>();
+            if (items && items.Size() <= 64) {
+                std::vector<SidebarMenuRole> roles; unsigned themes = 0;
+                for (auto item : items) {
+                    if (item.Name() == L"DiaTweaksThemesItem") ++themes;
+                    auto command = item.try_as<MenuFlyoutItem>();
+                    roles.push_back(command ? sidebar_menu_role(command.Text().c_str()) : SidebarMenuRole::Other);
+                }
+                out << L" menu-count=" << items.Size() << L" sidebar-menu=" << is_sidebar_menu(roles) << L" themes=" << themes;
+            }
+        }
         // Only recognized control roles are emitted, never arbitrary text.
         if (e.try_as<Button>()) {
             auto role = Automation::AutomationProperties::GetName(e);
@@ -35,6 +50,7 @@ static void walk(const DependencyObject& node, std::wostream& out, unsigned dept
 std::wstring NativeFeatures::layout(InstanceHandle handle) {
     auto e = impl_->element(handle);
     std::wostringstream out;
+    if (impl_->themesMenu) out << L"Theme menu: " << impl_->themesMenu->debug_status() << L"\n";
     if (!e) return L"Not a FrameworkElement.\n";
     out << L"Ancestors (nearest first):\n";
     auto parent = Media::VisualTreeHelper::GetParent(e);

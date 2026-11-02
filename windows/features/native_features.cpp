@@ -26,10 +26,12 @@ FeatureId NativeFeatures::Impl::button_role(const Node& n) {
     if (label == L"Chats" || label == L"Chat history" || label == L"Search chats") return FeatureId::Chats;
     return FeatureId::Count;
 }
-NativeFeatures::NativeFeatures(IXamlDiagnostics* d, IVisualTreeService* s) : impl_(std::make_unique<Impl>(d, s)) {}
+NativeFeatures::NativeFeatures(IXamlDiagnostics* d, IVisualTreeService* s, FeatureChanged changed) : impl_(std::make_unique<Impl>(d, s)) { impl_->changed = std::move(changed); }
 NativeFeatures::~NativeFeatures() = default;
-bool NativeFeatures::active() const { return !impl_->hidden.empty() || (impl_->layout && impl_->layout->active()) || (impl_->appearance && impl_->appearance->active()); }
+bool NativeFeatures::active() const { return !impl_->hidden.empty() || (impl_->layout && impl_->layout->active()) || (impl_->appearance && impl_->appearance->active()) || (impl_->theme && impl_->theme->active()); }
 void NativeFeatures::restore() {
+    if(impl_->theme)impl_->theme->restore();
+    if(impl_->themesMenu)impl_->themesMenu->remove();
     if (impl_->layout) impl_->layout->restore();
     if (impl_->appearance) impl_->appearance->restore();
     for (auto it = impl_->hidden.begin(); it != impl_->hidden.end();) {
@@ -42,6 +44,10 @@ FeatureStates NativeFeatures::tick(const std::vector<Node>& nodes, uint32_t mask
         states.push_back({static_cast<FeatureId>(i), false, requested(mask, static_cast<FeatureId>(i)), false, L"Windows adapter discovery pending"});
     if (!impl_->layout) impl_->layout = std::make_unique<LayoutFeatures>(impl_->diagnostics.Get(), impl_->service.Get());
     impl_->layout->tick(nodes, mask, states);
+    if(!impl_->theme)impl_->theme=std::make_unique<AppearanceRuntime>(impl_->diagnostics.Get(),impl_->service.Get());
+    impl_->theme->tick(nodes,effective(mask,FeatureId::Appearance),states[static_cast<size_t>(FeatureId::Appearance)]);
+    if (!impl_->themesMenu) impl_->themesMenu = std::make_unique<ThemesMenu>(impl_->diagnostics.Get(), impl_->changed);
+    impl_->themesMenu->tick(nodes, states[static_cast<size_t>(FeatureId::Appearance)]);
     if (!impl_->appearance) impl_->appearance = std::make_unique<WindowAppearance>(impl_->diagnostics.Get());
     // A mock/base diagnostics tree need not host a real WinUI window.
     if (impl_->appearance->active() || std::any_of(nodes.begin(), nodes.end(), [](const Node& n) { return n.name == L"SidebarBorder"; }))

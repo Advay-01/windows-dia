@@ -149,3 +149,58 @@ builds. Tests now include dependency behavior, generic feature IPC on/off,
 and rejection of overflowing ids before enum narrowing. Catalog freshness also
 passes. Generated headers, runtime copies, diagnostics logs and local recordings
 remain ignored and are not committed.
+
+## Themes from the native sidebar menu
+
+On Dia 1.4.0.424 x64, the initial appearance controls changed the sidebar and
+frame, and switching them Off restored both original backgrounds. The RGB picker,
+grain dial and opacity wave also worked from the first separate Themes menu.
+
+Themes now joins Dia's existing sidebar menu below Auto-Hide Tabs. The menu
+selector requires five fixed native commands and rejects unrelated tab menus;
+the selector and all four other CTest checks pass. The original native entries
+and item collection are retained. The sidebar ContextFlyout is not replaced.
+
+The editor opens on the existing UI timer after the native menu closes. In fresh
+process 27840, readback reported `Themes panel shown` and loaded the named Themes
+panel and RGB ColorPicker. Layout readback measured the picker at 300x498.4,
+the opacity control at 240x40 and the grain dial at 88x88. Opening the editor from
+the same native menu was also visually confirmed. Broader layout and
+appearance-mode checks remain pending, as described in features/appearance.md.
+
+## Compact Themes picker
+
+On 2026-11-02 the redesigned picker attached to a fresh Dia 1.4.0.424 process,
+3860. Opening Themes from the native sidebar menu reported `Themes panel shown`.
+Layout readback measured a 380x508 panel, a 360x360 canvas, a 352x44 palette row,
+a 250x76 opacity control and a 76x76 grain control. The containing ScrollViewer
+also measured 380x508; the complete panel fits without vertical scrolling.
+The appearance adapter reported available/requested/applied, and changes were
+written to appearance.ini. The five automated checks passed before attachment.
+Subsequent visual and interaction checks are recorded below.
+
+The swatch correction was confirmed visually. After the transform/panel update
+in process 8884, dragging smoothness, the hidden scrollbar, pointer focus outlines
+and the panel's light/dark appearance were confirmed correct. Two further issues
+were reported: starting a drag directly on the primary dot and missing color on
+the thin frame margins. In fresh process 19432, direct dragging from the large
+dot repeatedly and gradient color on the thin frame were both confirmed fixed.
+All five automated checks passed before that attachment. The packaged build
+uses this verified implementation. Broader top-tab, multi-window, high-contrast
+and restart-persistence checks remain pending.
+
+In process 26912, the minus/arrow alignment, hover, inner/outer contrast, finer
+grain and retaining the frame color with the sidebar hidden were confirmed
+correct. The remaining report concerns low-frame-rate movement of the opacity
+wave/dial. The subsequent renderer caching, direct brush-opacity updates and
+bottom-control drag changes were checked in fresh process 21852. Both the opacity
+wave and grain dial were confirmed smooth, with appearance updates working
+correctly after release. All five automated checks passed before attachment.
+The final cosmetic change removes the popover's hardcoded outer dark stroke.
+That build attached to fresh process 14840 after all five automated checks passed.
+The outer black outline was confirmed gone in light mode. A subsequent cosmetic
+correction sets the outer radius to 28, matching the inner radius of 18 plus its
+10-unit inset. That build attached to fresh process 5056 after all five automated
+checks passed. The inner and outer curves were confirmed visually consistent,
+with even spacing. A later layout readback was unavailable because the panel was
+closed; the corner verification here is the visual confirmation.

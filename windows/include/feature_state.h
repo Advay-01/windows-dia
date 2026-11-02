@@ -4,9 +4,9 @@
 #include <vector>
 #include <functional>
 namespace dt {
-enum class FeatureId : uint32_t { Edge, Square, Toolbar, Hover, Sidebar, Chat, Chats, Recent, Active, Count };
+enum class FeatureId : uint32_t { Edge, Square, Toolbar, Hover, Sidebar, Chat, Chats, Recent, Active, Appearance, Count };
 inline constexpr const wchar_t* FeatureKeys[] = {L"edgeToEdge", L"squareSidebarCorners", L"hideToolbar",
-    L"revealToolbarOnHover", L"hideSidebarButton", L"hideChatButton", L"hideChatsButton", L"hideRecentTabsButton", L"keepWindowsActive"};
+    L"revealToolbarOnHover", L"hideSidebarButton", L"hideChatButton", L"hideChatsButton", L"hideRecentTabsButton", L"keepWindowsActive", L"customAppearance"};
 inline constexpr uint32_t feature_bit(FeatureId id) { return 1u << static_cast<uint32_t>(id); }
 inline bool requested(uint32_t mask, FeatureId id) { return (mask & feature_bit(id)) != 0; }
 inline bool effective(uint32_t mask, FeatureId id) {

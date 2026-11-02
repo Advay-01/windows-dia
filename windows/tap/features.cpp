@@ -45,7 +45,7 @@ bool Session::is_settings_navigation(uint64_t id) {
 }
 void Context::sync_feature() {
 #ifdef DIATWEAKS_SETTINGS
-    if (!nativeFeatures) nativeFeatures = std::make_unique<NativeFeatures>(session->diagnostics.Get(), session->service.Get());
+    if (!nativeFeatures) nativeFeatures = std::make_unique<NativeFeatures>(session->diagnostics.Get(), session->service.Get(), [s = session](FeatureId id, bool on) { s->set_feature(id, on); });
     featureStates = nativeFeatures->tick(session->nodes_on_thread(thread), session->stopping ? 0 : session->featureMask.load());
     if (session->stopping) nativeFeatures->restore();
     else if (session->autoSettings) auto_settings();

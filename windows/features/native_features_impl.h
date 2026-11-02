@@ -3,6 +3,8 @@
 #include "session.h"
 #include "layout_features.h"
 #include "window_appearance.h"
+#include "appearance.h"
+#include "themes_menu.h"
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Automation.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
@@ -15,6 +17,9 @@ struct NativeFeatures::Impl {
     std::map<uint64_t, FeatureId> roles;
     std::unique_ptr<LayoutFeatures> layout;
     std::unique_ptr<WindowAppearance> appearance;
+    std::unique_ptr<AppearanceRuntime> theme;
+    std::unique_ptr<ThemesMenu> themesMenu;
+    FeatureChanged changed;
     Impl(IXamlDiagnostics* d, IVisualTreeService* s) : diagnostics(d), service(s) {}
     winrt::Microsoft::UI::Xaml::FrameworkElement element(InstanceHandle h) {
         ComPtr<::IInspectable> raw;
