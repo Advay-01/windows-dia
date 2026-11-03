@@ -46,7 +46,7 @@ void Session::run() noexcept {
             const auto request = shared_->request;
             try {
                 if (request.command == Command::Tree) { response = tree(); hr = S_OK; }
-                else if (request.command == Command::Inspect || request.command == Command::Pulse || request.command == Command::Settings || request.command == Command::Layout) {
+                else if (request.command == Command::Inspect || request.command == Command::Pulse || request.command == Command::Settings || request.command == Command::Layout || request.command == Command::Overlay) {
                     auto n = node(request.handle);
                     Context* context = nullptr;
                     if (n) { std::lock_guard lock(mutex_); context = contexts_.at(n->thread).get(); }

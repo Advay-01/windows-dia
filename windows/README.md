@@ -1,4 +1,4 @@
-# Windows prototype
+# DiaTweaks Windows development
 
 For a review build, extract **DiaTweaks-Windows-x64.zip** and double-click
 **DiaTweaks.exe**. It opens Dia, runs in the notification area and installs
@@ -10,18 +10,15 @@ Editing that file applies changes live; Settings toggles update the same file.
 Native DLL code updates still require fully quitting Dia before replacing files.
 The tray menu can turn everything off or quit and restore the original live UI.
 
-This branch adds an x64 developer probe alongside the existing macOS implementation.
-It builds a controller and a COM TAP DLL for WinUI XAML diagnostics. It is **not a
-working Windows release of the macOS tweaks yet**. Live attachment and native
-tree discovery and a timed Visibility override work on Dia 1.4.0.424. The sidebar
-toggle's Visible → Collapsed → Visible cycle was verified by live readback;
-visual confirmation and screenshots are still pending.
+The Windows preview includes a [native Patches page](settings/README.md),
+a sidebar [Themes editor](features/appearance.md), and an
+[Alt+Space search panel](features/url-overlay.md). Patches shares the macOS
+feature catalog and enables switches with a Windows adapter for the current
+Dia layout. See [feature adapters](features/README.md) for their scope.
 
-An optional [native Patches panel prototype](settings/README.md) adds the shared
-feature catalog inside Dia Settings. The feature-enabled build adds native
-edge-to-edge, square sidebar corners, toolbar hiding/hover reveal and toolbar
-button adapters. Availability follows the current Dia layout. See
-[feature adapters](features/README.md) for exact scope and verified behavior.
+The source also builds an x64 developer probe and a COM TAP DLL for WinUI XAML
+diagnostics. The probe supports live attachment, native tree discovery, and timed
+Visibility overrides on Dia 1.4.0.424.
 
 ## Build
 

@@ -11,6 +11,7 @@
 #ifdef DIATWEAKS_SETTINGS
 #include "native_settings.h"
 #include "native_features.h"
+#include "url_overlay.h"
 #endif
 
 namespace dt {
@@ -34,6 +35,7 @@ struct Context {
 #ifdef DIATWEAKS_SETTINGS
     std::unique_ptr<NativeSettings> settings;
     std::unique_ptr<NativeFeatures> nativeFeatures;
+    std::unique_ptr<UrlOverlay> urlOverlay;
     uint64_t settingsId = 0;
     ULONGLONG nextSettingsAttempt = 0;
     std::wstring settingsError;

@@ -2,9 +2,12 @@
 #include "appearance_math.h"
 #include "literal_override.h"
 #include "session.h"
+#include "tab_glass.h"
 #include <algorithm>
 #include <robuffer.h>
 #include <set>
+#include <winrt/Microsoft.UI.Content.h>
+#include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.UI.ViewManagement.h>
@@ -90,9 +93,59 @@ struct AppearanceRuntime::Impl
         std::vector<uint32_t> gradient;
     };
     std::map<uint64_t, Entry> entries;
+    std::unique_ptr<TabGlass> tabs;
     std::set<uint64_t> unsupported;
     std::set<InstanceHandle> unsupportedModes;
     std::map<InstanceHandle, std::unique_ptr<LiteralOverride<ElementTheme>>> modes;
+    struct CaptionSurface
+    {
+        using ColorRef = winrt::Windows::Foundation::IReference<winrt::Windows::UI::Color>;
+        winrt::Microsoft::UI::Windowing::AppWindowTitleBar bar{nullptr};
+        ColorRef before[2]{nullptr, nullptr}, applied{nullptr};
+        explicit CaptionSurface(const winrt::Microsoft::UI::Windowing::AppWindowTitleBar &value)
+            : bar(value)
+        {
+            before[0] = bar.ButtonBackgroundColor();
+            before[1] = bar.ButtonInactiveBackgroundColor();
+        }
+        void sync(bool light)
+        {
+            auto native = bar.BackgroundColor();
+            const uint8_t neutral = light ? 248 : 32;
+            auto value = native && native.Value().A == 255
+                             ? native.Value()
+                             : winrt::Windows::UI::Color{255, neutral, neutral, neutral};
+            applied = box_value(value).as<ColorRef>();
+            auto active = bar.ButtonBackgroundColor(),
+                 inactive = bar.ButtonInactiveBackgroundColor();
+            if (!active || active.Value() != value)
+                bar.ButtonBackgroundColor(applied);
+            if (!inactive || inactive.Value() != value)
+                bar.ButtonInactiveBackgroundColor(applied);
+        }
+        ~CaptionSurface()
+        {
+            try
+            {
+                auto value = bar.ButtonBackgroundColor();
+                if (applied && value && value.Value() == applied.Value())
+                    bar.ButtonBackgroundColor(before[0]);
+            }
+            catch (...)
+            {
+            }
+            try
+            {
+                auto value = bar.ButtonInactiveBackgroundColor();
+                if (applied && value && value.Value() == applied.Value())
+                    bar.ButtonInactiveBackgroundColor(before[1]);
+            }
+            catch (...)
+            {
+            }
+        }
+    };
+    std::map<uint64_t, std::unique_ptr<CaptionSurface>> captions;
     Impl(IXamlDiagnostics *d, IVisualTreeService *s) : diagnostics(d), service(s) {}
 };
 AppearanceRuntime::AppearanceRuntime(IXamlDiagnostics *d, IVisualTreeService *s)
@@ -110,6 +163,9 @@ void AppearanceRuntime::restore()
     impl_->unsupported.clear();
     impl_->unsupportedModes.clear();
     impl_->modes.clear();
+    if (impl_->tabs)
+        impl_->tabs->restore();
+    impl_->captions.clear();
 }
 void AppearanceRuntime::tick(const std::vector<Node> &nodes, bool on, FeatureState &state)
 {
@@ -175,7 +231,41 @@ void AppearanceRuntime::tick(const std::vector<Node> &nodes, bool on, FeatureSta
         {
         }
     }
+    if (!impl_->tabs)
+        impl_->tabs = std::make_unique<TabGlass>(impl_->diagnostics.Get(), impl_->service.Get());
+    impl_->tabs->tick(browserRoots, on);
+    if (on)
+        state.detail += L"; " + impl_->tabs->status();
     std::set<InstanceHandle> themedRoots;
+    std::set<uint64_t> captionWindows;
+    if (on)
+        for (const auto &root : browserRoots)
+        {
+            try
+            {
+                auto id = root.ContentIslandEnvironment().AppWindowId();
+                if (!id.Value)
+                    continue;
+                auto bar =
+                    winrt::Microsoft::UI::Windowing::AppWindow::GetFromWindowId(id).TitleBar();
+                if (!bar)
+                    continue;
+                captionWindows.insert(id.Value);
+                auto &surface = impl_->captions[id.Value];
+                if (!surface)
+                    surface = std::make_unique<Impl::CaptionSurface>(bar);
+                surface->sync(root.Content().as<FrameworkElement>().ActualTheme() ==
+                              ElementTheme::Light);
+            }
+            catch (...)
+            {
+            }
+        }
+    for (auto it = impl_->captions.begin(); it != impl_->captions.end();)
+        if (!captionWindows.contains(it->first))
+            it = impl_->captions.erase(it);
+        else
+            ++it;
     if (!on || settings.theme.mode == ThemeMode::Auto)
         impl_->modes.clear();
     else

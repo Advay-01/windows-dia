@@ -114,6 +114,8 @@ static void session_tests(bool background) {
             std::wstring response;
             require(SUCCEEDED(channel.call({Command::Tree, 0, 0}, response)) && response.find(L"SidebarToggleButton") != std::wstring::npos, "tree roundtrip");
             require(channel.call({Command::Inspect, 1, 0}, response) == S_OK && response.find(L"Visible") != std::wstring::npos, "inspect on owner thread");
+            require(FAILED(channel.call({Command::Overlay, 999, 0}, response)), "reject stale overlay target");
+            require(FAILED(channel.call({Command::Overlay, 1, 0}, response)) && !service->collapsed, "overlay rejects a non-browser target without mutations");
             require(FAILED(channel.call({Command::Pulse, 999, 1}, response)), "reject stale ID");
             require(channel.call({Command::Pulse, 1, 1}, response) == S_OK && service->collapsed, "pulse roundtrip");
             const auto restoredBy = GetTickCount64() + 2500;

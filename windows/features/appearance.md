@@ -102,3 +102,45 @@ The later updates also confirmed alignment, hover, contrast, fine grain, frame
 color with the sidebar hidden, and smooth bottom controls. Restart persistence,
 high contrast, broader appearance combinations, multiple windows and top tabs
 still need visual checks.
+
+The pending performance revision caches the exact RGB flyout and combines color
+events into 33 ms previews. These previews use the existing low-resolution,
+grain-free theme renderer and avoid preference writes. After 160 ms of idle time,
+or when the flyout closes, the latest color is saved and rendered at full quality.
+Native active/inactive caption-button backgrounds receive a separate neutral
+surface while Themes is enabled, with their previous values restored on disable.
+Hover/pressed caption-button colors remain native. These changes need live checks
+for RGB interaction speed, final color persistence and caption appearance during
+focus, resize and light/dark transitions. The combined build loaded in Dia process
+14500 and all seven automated checks passed. The user confirmed the RGB picker
+is smoother and the caption buttons stay neutral after the update. Focus, resize,
+light/dark combinations and final-color persistence still need broader checks.
+
+## Active-tab glass prototype
+
+When Themes is enabled, the sidebar's selected tab receives a subtle translucent
+fill in place of its opaque neutral fill. The adapter uses Dia's
+native selected-tab state and only considers neutral, row-sized fills within
+that tab. It preserves native tab geometry, labels, favicon, close button,
+selection and input handlers. Switching tabs releases the old override, and
+disabling Themes restores original literal values. Bound or unsupported fills
+are left alone. The native selection border remains in place.
+
+The selected shape uses a translucent white sheen in dark appearance, or a subtle
+black tint in light appearance. This preserves the color flow without putting an
+acrylic effect on Dia's vector path. Diagnostics report selected-tab and overridden
+surface counts without tab titles or URLs. This revision is awaiting a live
+check with tab switching and Themes on/off; top-tab layouts are not covered by
+the current tab-list adapter.
+In process 24628, diagnostics found one selected tab but zero matching surfaces.
+The native tab canvas contains vector Paths with zero layout size. The follow-up
+checks Path geometry bounds and Fill, in addition to ordinary panel backgrounds;
+in process 29860 diagnostics report one selected tab, one overridden surface and
+zero unsupported properties. Its appearance, switching behavior and restoration
+still need user verification. All eight automated checks passed before attachment.
+The user reported the highlight or controls looked wrong in that build. The next
+revision replaces the path's AcrylicBrush with a plain translucent SolidColorBrush,
+retaining its native geometry and input behavior; appearance and switching remain
+pending live verification.
+That correction loaded in Dia process 22712 with all eight checks passing and
+one selected-tab fill overridden, with no unsupported properties reported.

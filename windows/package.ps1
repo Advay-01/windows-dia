@@ -12,7 +12,11 @@ foreach ($file in @('DiaTweaks.exe', 'DiaTweaksTap.dll', 'diatweaks-probe.exe'))
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'TESTER-README.txt') -Destination (Join-Path $stage 'README.txt')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'settings/assets/LICENSE.fluent-icons') -Destination (Join-Path $stage 'LICENSE.fluent-icons')
 $revision = git -C $PSScriptRoot rev-parse HEAD
-Set-Content -LiteralPath (Join-Path $stage 'BUILD.txt') -Value "Source commit: $revision`nArchitecture: x64`nConfiguration: $Configuration" -Encoding utf8
+if ($LASTEXITCODE) { throw 'Could not identify the source commit.' }
+$changes = git -C $PSScriptRoot status --porcelain --untracked-files=normal
+if ($LASTEXITCODE) { throw 'Could not read source status.' }
+$sourceStatus = if ($changes) { 'Local changes included' } else { 'Clean checkout' }
+Set-Content -LiteralPath (Join-Path $stage 'BUILD.txt') -Value "Base commit: $revision`nSource status: $sourceStatus`nArchitecture: x64`nConfiguration: $Configuration" -Encoding utf8
 $hashes = Get-ChildItem -LiteralPath $stage -File | Sort-Object Name | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name }
 Set-Content -LiteralPath (Join-Path $stage 'SHA256SUMS.txt') -Value $hashes -Encoding ascii
 $smoke = Start-Process -FilePath (Join-Path $stage 'DiaTweaks.exe') -ArgumentList '--self-test' -WindowStyle Hidden -Wait -PassThru

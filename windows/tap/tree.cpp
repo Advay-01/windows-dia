@@ -87,6 +87,7 @@ void Context::execute(Job& job) {
             << L" available=" << state.available << L" requested=" << state.on << L" applied=" << state.applied << L" " << state.detail << L"\n";
 #ifdef DIATWEAKS_SETTINGS
         if (session->autoSettings) out << L"Settings: " << (settings ? L"installed" : settingsError.empty() ? L"waiting for Settings" : settingsError) << L"\n";
+        if (urlOverlay) out << L"Dia URL overlay: " << urlOverlay->status() << L"\n";
 #endif
         job.response = out.str();
         return;
@@ -94,6 +95,17 @@ void Context::execute(Job& job) {
     if (session->stopping) { job.result = E_ABORT; return; }
     auto node = session->node(job.request.handle);
     if (!node || node->thread != GetCurrentThreadId()) { job.result = HRESULT_FROM_WIN32(ERROR_NOT_FOUND); return; }
+    if(job.request.command==Command::Overlay) {
+#ifdef DIATWEAKS_SETTINGS
+        if(node->name!=L"SharedSurface"){job.result=E_INVALIDARG;return;}
+        sync_feature();
+        if(urlOverlay){urlOverlay->toggle();job.response=urlOverlay->status();job.result=job.response.starts_with(L"Open:")?S_OK:E_FAIL;}
+        else job.result=E_NOTIMPL;
+#else
+        job.result=E_NOTIMPL;
+#endif
+        return;
+    }
     if (job.request.command == Command::Settings) {
 #ifdef DIATWEAKS_SETTINGS
         if (!session->is_settings_navigation(node->id)) { job.result = E_INVALIDARG; return; }
@@ -137,6 +149,12 @@ LRESULT CALLBACK Context::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(context));
     }
     try {
+#ifdef DIATWEAKS_SETTINGS
+        if (context && msg == WM_HOTKEY && wp == UrlOverlay::HotkeyId && context->urlOverlay) {
+            context->urlOverlay->toggle();
+            return 0;
+        }
+#endif
         if (context && msg == WorkMessage) {
             std::unique_ptr<std::shared_ptr<Job>> holder(reinterpret_cast<std::shared_ptr<Job>*>(lp));
             auto job = *holder;

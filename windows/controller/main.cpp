@@ -12,7 +12,7 @@ static void usage() {
     std::wcout << L"DiaTweaks Windows prototype (x64)\n"
         L"Usage: diatweaks-probe [--pid PID] [--check]\n"
         L"Open Dia yourself first. --check only validates a target; it does not attach.\n"
-        L"Interactive: tree [filter], layout ID, inspect ID, pulse ID SECONDS (1..30), settings ID, features, restore, quit\n"
+        L"Interactive: tree [filter], layout ID, inspect ID, pulse ID SECONDS (1..30), settings ID, overlay ID, features, restore, quit\n"
         L"Feature: enable KEY / disable KEY (this session only); --log PATH records unwrapped diagnostics\n"
         L"IDs come from tree, not raw memory addresses. Pulse is a temporary developer test.\n";
 }
@@ -80,8 +80,8 @@ int wmain(int argc, wchar_t** argv) {
                     }
                     request = {Command::SetFeature, static_cast<uint64_t>(feature_id(key)), verb == L"enable" ? 1U : 0U};
                 }
-                else if (verb == L"inspect" || verb == L"pulse" || verb == L"settings" || verb == L"layout") {
-                    request.command = verb == L"layout" ? Command::Layout : (verb == L"settings" ? Command::Settings : (verb == L"inspect" ? Command::Inspect : Command::Pulse));
+                else if (verb == L"inspect" || verb == L"pulse" || verb == L"settings" || verb == L"layout" || verb == L"overlay") {
+                    request.command = verb == L"overlay" ? Command::Overlay : verb == L"layout" ? Command::Layout : (verb == L"settings" ? Command::Settings : (verb == L"inspect" ? Command::Inspect : Command::Pulse));
                     if (!(input >> request.handle) || !request.handle ||
                         (verb == L"pulse" && (!(input >> request.seconds) || request.seconds < 1 || request.seconds > 30))) {
                         std::wcout << L"Expected an ID from tree and, for pulse, 1..30 seconds.\n"; continue;

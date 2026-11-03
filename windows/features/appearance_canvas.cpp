@@ -398,7 +398,19 @@ void AppearanceEditor::Impl::appearance(bool light)
 }
 void AppearanceEditor::Impl::choose_exact()
 {
+    if (exact)
+    {
+        auto colors = theme_dots(appearance_values().theme);
+        uint32_t c = colors.empty() ? 0xffffff : colors[0].color;
+        exactUpdating = true;
+        exactPicker.Color(
+            winrt::Windows::UI::Color{255, uint8_t(c >> 16), uint8_t(c >> 8), uint8_t(c)});
+        exactUpdating = false;
+        exact.ShowAt(handles[0]);
+        return;
+    }
     ColorPicker picker;
+    exactPicker = picker;
     picker.IsAlphaEnabled(false);
     picker.IsMoreButtonVisible(false);
     picker.IsHexInputVisible(true);
@@ -406,18 +418,41 @@ void AppearanceEditor::Impl::choose_exact()
     uint32_t c = colors.empty() ? 0xffffff : colors[0].color;
     picker.Color(winrt::Windows::UI::Color{255, uint8_t(c >> 16), uint8_t(c >> 8), uint8_t(c)});
     auto weak = weak_from_this();
+    exactTimer = board.DispatcherQueue().CreateTimer();
+    exactTimer.Interval(std::chrono::milliseconds(33));
+    exactTimer.Tick([weak](auto &&, auto &&) noexcept {
+        try
+        {
+            if (auto s = weak.lock())
+            {
+                if (s->exactDirty)
+                    s->flush_exact(false);
+                else if (s->exactPreview && GetTickCount64() - s->exactChangedAt >= 160)
+                    s->flush_exact(true);
+            }
+        }
+        catch (...)
+        {
+        }
+    });
     picker.ColorChanged([weak](auto &&, const ColorChangedEventArgs &e) noexcept {
         try
         {
             if (auto s = weak.lock())
             {
+                if (s->exactUpdating)
+                    return;
                 auto c = e.NewColor();
                 auto old = appearance_values().theme;
                 auto m = theme_from_rgb((uint32_t(c.R) << 16) | (uint32_t(c.G) << 8) | c.B);
                 m.count = std::max(1, old.count);
                 m.harmony = old.harmony;
                 m.mode = old.mode;
-                s->apply(m);
+                s->exactPending = m;
+                s->exactDirty = true;
+                s->exactChangedAt = GetTickCount64();
+                if (!s->exactTimer.IsRunning())
+                    s->exactTimer.Start();
             }
         }
         catch (...)
@@ -426,6 +461,28 @@ void AppearanceEditor::Impl::choose_exact()
     });
     exact = Flyout{};
     exact.Content(picker);
+    exact.Closed([weak](auto &&, auto &&) noexcept {
+        try
+        {
+            if (auto s = weak.lock())
+                s->flush_exact(true);
+        }
+        catch (...)
+        {
+        }
+    });
     exact.ShowAt(handles[0]);
+}
+void AppearanceEditor::Impl::flush_exact(bool persist)
+{
+    if (!exactDirty && !(persist && exactPreview))
+        return;
+    change_theme(exactPending, persist);
+    exactDirty = false;
+    exactPreview = !persist;
+    activate();
+    render(false);
+    if (persist && exactTimer)
+        exactTimer.Stop();
 }
 } // namespace dt

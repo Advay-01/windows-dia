@@ -1,5 +1,6 @@
 #pragma once
 #include "appearance.h"
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Media.Animation.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.Shapes.h>
@@ -23,6 +24,11 @@ struct AppearanceEditor::Impl : std::enable_shared_from_this<AppearanceEditor::I
     Button plus, minus, harmony;
     winrt::Microsoft::UI::Xaml::Controls::ScrollViewer pages;
     winrt::Microsoft::UI::Xaml::Controls::Flyout exact{nullptr};
+    winrt::Microsoft::UI::Xaml::Controls::ColorPicker exactPicker{nullptr};
+    winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer exactTimer{nullptr};
+    ThemeModel exactPending;
+    bool exactDirty = false, exactPreview = false, exactUpdating = false;
+    ULONGLONG exactChangedAt = 0;
     winrt::Microsoft::UI::Xaml::Media::Animation::Storyboard motion{nullptr};
     bool dragging = false;
     int page = 0;
@@ -33,6 +39,7 @@ struct AppearanceEditor::Impl : std::enable_shared_from_this<AppearanceEditor::I
     void render(bool animate = false);
     void apply(ThemeModel, bool animate = false);
     void choose_exact();
+    void flush_exact(bool persist);
     void activate();
 };
 } // namespace dt

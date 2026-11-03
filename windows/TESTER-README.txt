@@ -1,4 +1,4 @@
-DiaTweaks for Windows - review build
+DiaTweaks for Windows - tester build
 
 Requires Windows 11 x64 and Dia installed normally. Tested with Dia 1.4.0.424.
 
@@ -11,6 +11,15 @@ large color dot or choose a swatch. Use + and - to add/remove linked colors;
 the three-circle button changes their harmony. Double-click the large dot for
 exact RGB/hex entry. Adjust the opacity wave and grain dial below the swatches.
 Remove every color with - to restore Dia. The controls are separate from Patches.
+
+Alt+Space opens the URL/search popup inside Dia (Ctrl+Alt+Space if occupied).
+Type a URL or search words. Use arrows or Tab to select a result, then Enter
+to open it. Clicking a result also works. Escape or clicking outside closes
+the popup. Matching Dia tabs and history-based Top sites appear as you type.
+The panel uses rounded acrylic and adapts the text color to the glass.
+
+With a custom theme on, the selected sidebar tab uses a translucent
+highlight that stays in place during fast hovering.
 
 Switches apply immediately and are remembered for the next launch. There is no
 terminal to leave open, no developer tools to enable, and no administrator step.
