@@ -28,6 +28,6 @@ If **Alt + Space** is already in use, try **Ctrl + Alt + Space**. Use the arrow 
 
 I tested this on Windows 11 x64 with Dia **1.4.0.424**. The sidebar layout got the most live testing. Caption colors are experimental, and the Chats and Recent Tabs switches still need Windows support. The recordings show the controls during development.
 
-[Build and diagnostics](https://github.com/Advay-01/windows-dia/blob/alt-tab-bar/windows/README.md) · [Windows source](https://github.com/Advay-01/windows-dia/tree/alt-tab-bar) · [Report a problem](https://github.com/Advay-01/windows-dia/issues)
+[Build and diagnostics](https://github.com/Advay-01/windows-dia/blob/alt-tab-bar/windows/README.md) · [Windows source](https://github.com/Advay-01/windows-dia/tree/alt-tab-bar)
 
 DiaTweaks is an unofficial add-on and runs alongside your installed copy of Dia.
